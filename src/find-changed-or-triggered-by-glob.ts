@@ -59,12 +59,8 @@ export async function* findChangedOrTriggeredByGlob({ cwd = '.', triggers, stora
 	const lastReadTime = await storage.get();
 	if (lastReadTime) {
 		const triggeredPatterns = getTriggered(cwd, lastReadTime, triggers);
-		const micromatchOptions: micromatch.Options = {
-			nocase: true,
-			windows: true,
-		};
 		for await (const file of files) {
-			if (lastReadTime < fs.statSync(resolve(cwd, file)).mtime || micromatch.any(file, triggeredPatterns, micromatchOptions)) {
+			if (lastReadTime < fs.statSync(resolve(cwd, file)).mtime || micromatch.any(file, triggeredPatterns)) {
 				yield file;
 			}
 		}
