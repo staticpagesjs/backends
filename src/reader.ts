@@ -49,7 +49,7 @@ export async function* reader<T extends Record<string, unknown>, E extends Recor
 
 	for await (const file of files) {
 		try {
-			yield await parser(await readFile(resolve(cwd, file)) as any, file, optionsWithDefaults);
+			yield await parser(await readFile(resolve(cwd, file)), file, optionsWithDefaults);
 		} catch (error) {
 			onError(error);
 		}
