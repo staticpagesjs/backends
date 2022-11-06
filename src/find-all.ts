@@ -1,5 +1,12 @@
 import * as fs from 'fs';
 
+export namespace findAll {
+	export type Options = {
+		cwd?: string;
+		filter?(file: string): boolean;
+	};
+}
+
 const readdir = (dir: string) => {
 	const files: string[] = [];
 	const readdir = (dir: string, prefix = '') => {
@@ -22,10 +29,7 @@ const readdir = (dir: string) => {
 export function* findAll({
 	cwd = '.',
 	filter,
-}: {
-	cwd?: string;
-	filter?(file: string): boolean;
-}): Iterable<string> {
+}: findAll.Options): Iterable<string> {
 	if (typeof filter === 'function') {
 		for (const file of readdir(cwd)) {
 			if (filter(file)) yield file;
