@@ -22,13 +22,13 @@ const asyncIterable = file.reader({
 });
 
 // one example source file:
-// # /path/to/data/my/folder/file.json
+// # /path/to/pages/my/folder/file.json
 // {"hello":"world"}
 
 // one item in the asyncIterable:
 // {
 //   header: {
-//     cwd: '/path/to/data',
+//     cwd: '/path/to/pages',
 //     path: 'my/folder/file.json',
 //     dirname: 'my/folder',
 //     basename: 'file',
