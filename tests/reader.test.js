@@ -2,13 +2,14 @@ import { reader } from '../esm/index.js';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
-const testsDir = path.dirname(fileURLToPath(import.meta.url)).replace(/\\/g, '/');
+const inputDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'input');
 
 test('it reads the specified files and parses its contents', async () => {
 	const expected = [{ body: 'hello file1' }, { body: 'hello file2' }];
 
 	const asyncIterable = reader({
-		files: ['file1.txt', 'file2.txt'].map(x => path.join(testsDir, 'input', x)),
+		cwd: inputDir,
+		pattern: ['file1.txt', 'file2.txt'],
 		parser(body) {
 			return { body: 'hello ' + body.toString().trim() };
 		}

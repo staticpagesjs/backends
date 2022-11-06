@@ -1,18 +1,24 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+export namespace writer {
+	export type Options<T extends Record<string, unknown>> = {
+		cwd?: string;
+		namer: { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; } | { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; }[];
+		renderer(data: Readonly<T>): string | NodeJS.ArrayBufferView | undefined | void | Promise<string | NodeJS.ArrayBufferView | undefined | void>;
+		onError?(error: unknown): void;
+	};
+}
+
 /**
  * Writes documents to the filesystem.
  */
 export function writer<T extends Record<string, unknown>>({
+	cwd = 'dist',
 	namer,
 	renderer,
 	onError = error => { console.error(error); },
-}: {
-	namer: { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; } | { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; }[];
-	renderer(data: Readonly<T>): string | NodeJS.ArrayBufferView | undefined | void | Promise<string | NodeJS.ArrayBufferView | undefined | void>;
-	onError?(error: unknown): void;
-}) {
+}: writer.Options<T>) {
 	if (!Array.isArray(namer)) namer = [namer];
 
 	if (namer.some(fn => typeof fn !== 'function')) {
@@ -41,6 +47,7 @@ export function writer<T extends Record<string, unknown>>({
 			const rendered = await renderer(data);
 			if (!rendered) return;
 
+			outputPath = path.resolve(cwd, outputPath);
 			const outputDirname = path.dirname(outputPath);
 			if (!dirCache.has(outputDirname)) {
 				fs.mkdirSync(outputDirname, { recursive: true });

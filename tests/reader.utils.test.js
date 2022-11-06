@@ -1,15 +1,17 @@
-import { findAll, findByGlob, filterChanged, filterChangedOrTriggered, parseHeader } from '../esm/index.js';
+import { findAll, findByGlob, findChangedByGlob, findChangedOrTriggeredByGlob, parseHeader } from '../esm/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
-const testsDir = path.dirname(fileURLToPath(import.meta.url)).replace(/\\/g, '/');
+const inputDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'input');
 
 test('findAll() reads everything and possible to filter', async () => {
-	const expected = ['file1', 'file2', 'folder/file3']
-		.map(x => testsDir + '/input/./' + x + '.txt');
+	const expected = ['file1.txt', 'file2.txt', 'folder/file3.txt'];
 
-	const output = [...findAll(path.join(testsDir, 'input'), { filter: x => !x.includes('skip.txt') })];
+	const output = [...findAll({
+		cwd: inputDir,
+		filter: x => !x.includes('skip.txt'),
+	})];
 
 	output.sort((a, b) => a.localeCompare(b));
 
@@ -17,11 +19,10 @@ test('findAll() reads everything and possible to filter', async () => {
 });
 
 test('findByGlob() reads by pattern and possible to filter and ignore', async () => {
-	const expected = ['file1']
-		.map(x => testsDir + '/input/./' + x + '.txt');
+	const expected = ['file1.txt'];
 
 	const output = [...findByGlob({
-		cwd: path.join(testsDir, 'input'),
+		cwd: inputDir,
 		pattern: '*.txt',
 		ignore: 'skip.txt',
 		filter: x => !x.endsWith('2.txt'),
@@ -32,9 +33,8 @@ test('findByGlob() reads by pattern and possible to filter and ignore', async ()
 	expect(output).toEqual(expected);
 });
 
-test('filterChanged() filters newer files only', async () => {
-	const expected = ['file1']
-		.map(x => testsDir + '/input/./' + x + '.txt');
+test('findChangedByGlob() filters newer files only', async () => {
+	const expected = ['file1.txt'];
 
 	const now = new Date();
 	const then = new Date();
@@ -48,15 +48,14 @@ test('filterChanged() filters newer files only', async () => {
 		set(d) { incremental.date = d; }
 	};
 
-	fs.utimesSync(testsDir + '/input/file1.txt', now, now);
-	fs.utimesSync(testsDir + '/input/file2.txt', then, then);
+	fs.utimesSync(inputDir + '/file1.txt', now, now);
+	fs.utimesSync(inputDir + '/file2.txt', then, then);
 
-	const asyncIterable = filterChanged(findByGlob({
-		cwd: path.join(testsDir, 'input'),
+	const asyncIterable = findChangedByGlob({
+		cwd: inputDir,
 		pattern: '*.txt',
 		ignore: 'skip.txt',
-	}), {
-		storage: incremental
+		storage: incremental,
 	});
 
 	const output = [];
@@ -70,9 +69,8 @@ test('filterChanged() filters newer files only', async () => {
 	expect(incremental.date).not.toBeNull();
 });
 
-test('filterChangedOrTriggered() filters newer files plus triggered ones only', async () => {
-	const expected = ['file1', 'folder/file3']
-		.map(x => testsDir + '/input/./' + x + '.txt');
+test('findChangedOrTriggeredByGlob() filters newer files plus triggered ones only', async () => {
+	const expected = ['file1.txt', 'folder/file3.txt'];
 
 	const now = new Date();
 	const then = new Date();
@@ -86,17 +84,15 @@ test('filterChangedOrTriggered() filters newer files plus triggered ones only', 
 		set(d) { incremental.date = d; }
 	};
 
-	fs.utimesSync(testsDir + '/input/file1.txt', now, now);
-	fs.utimesSync(testsDir + '/input/file2.txt', then, then);
-	fs.utimesSync(testsDir + '/input/folder/file3.txt', then, then);
+	fs.utimesSync(inputDir + '/file1.txt', now, now);
+	fs.utimesSync(inputDir + '/file2.txt', then, then);
+	fs.utimesSync(inputDir + '/folder/file3.txt', then, then);
 
-	const asyncIterable = filterChangedOrTriggered(findByGlob({
-		cwd: path.join(testsDir, 'input'),
+	const asyncIterable = findChangedOrTriggeredByGlob({
+		cwd: inputDir,
 		pattern: '**/*.txt',
 		ignore: 'skip.txt',
-	}), {
 		storage: incremental,
-		cwd: path.join(testsDir, 'input'),
 		triggers: {
 			'*1.txt': 'folder/*'
 		}
@@ -116,7 +112,7 @@ test('filterChangedOrTriggered() filters newer files plus triggered ones only', 
 test('parseHeader() makes a standard page object with header', async () => {
 	const expected = {
 		header: {
-			cwd: testsDir + '/input',
+			cwd: inputDir.replace(/\\/g, '/'),
 			path: 'folder/file3.txt',
 			dirname: 'folder',
 			basename: 'file3',
@@ -125,9 +121,9 @@ test('parseHeader() makes a standard page object with header', async () => {
 		body: 'hello world'
 	};
 
-	const parser = parseHeader(b => JSON.parse(b.toString('utf-8')));
+	const parser = parseHeader(b => JSON.parse(b.toString()));
 
-	const output = parser(Buffer.from('{"body":"hello world"}'), testsDir + '/input/./folder/file3.txt');
+	const output = parser(Buffer.from('{"body":"hello world"}'), 'folder/file3.txt', { cwd: inputDir });
 
 	expect(output).toEqual(expected);
 });

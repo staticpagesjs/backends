@@ -1,9 +1,20 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import { resolve } from 'path';
 import glob from 'fast-glob';
 import micromatch from 'micromatch';
 
-const CWD_MARKER_RE = /.*\/\.\//;
+import { findByGlob } from './find-by-glob.js';
+
+export namespace findChangedOrTriggeredByGlob {
+	export type Options = {
+		cwd?: string;
+		triggers: Record<string, string | string[] | { (matches: string[]): string[]; }>;
+		storage: {
+			get(): Date | undefined | Promise<Date | undefined>;
+			set(date: Date): void;
+		};
+	} & findByGlob.Options;
+}
 
 const getTriggered = (cwd: string, lastReadTime: Date, triggers: Record<string, string | string[] | { (matches: string[]): string[]; }>) => {
 	const result = new Set<string>();
@@ -16,7 +27,7 @@ const getTriggered = (cwd: string, lastReadTime: Date, triggers: Record<string, 
 		});
 
 		const changedFilesMatchingSrcPattern = filesMatchingSrcPattern
-			.filter(f => lastReadTime < fs.statSync(path.resolve(cwd, f)).mtime);
+			.filter(f => lastReadTime < fs.statSync(resolve(cwd, f)).mtime);
 
 		if (changedFilesMatchingSrcPattern.length > 0) {
 			const dest = triggers[srcPattern];
@@ -38,21 +49,12 @@ const getTriggered = (cwd: string, lastReadTime: Date, triggers: Record<string, 
 };
 
 /**
- * Filters absolute file paths, keeping only where the
- * file modification time is newer than the time provided by `storage.get()`
- * or the file path matches patterns provided by triggering files that are newer.
+ * Finds files by glob pattern, keeping only those where the
+ * modification time is newer than the time provided by `storage.get()` or
+ * the file path matches patterns provided by triggering files that are newer.
  */
-export async function* filterChangedOrTriggered(
-	files: Iterable<string> | AsyncIterable<string>,
-{
-	storage,
-	cwd = '.',
-	triggers
-}: {
-	cwd?: string;
-	storage: { get(): Date | undefined | Promise<Date | undefined>; set(date: Date): void; };
-	triggers: Record<string, string | string[] | { (matches: string[]): string[]; }>;
-}) {
+export async function* findChangedOrTriggeredByGlob({ cwd = '.', triggers, storage, ...rest }: findChangedOrTriggeredByGlob.Options) {
+	const files = findByGlob({ cwd, ...rest });
 	const now = new Date();
 	const lastReadTime = await storage.get();
 	if (lastReadTime) {
@@ -62,7 +64,7 @@ export async function* filterChangedOrTriggered(
 			windows: true,
 		};
 		for await (const file of files) {
-			if (lastReadTime < fs.statSync(file).mtime || micromatch.any(file.replace(CWD_MARKER_RE, ''), triggeredPatterns, micromatchOptions)) {
+			if (lastReadTime < fs.statSync(resolve(cwd, file)).mtime || micromatch.any(file, triggeredPatterns, micromatchOptions)) {
 				yield file;
 			}
 		}
@@ -74,4 +76,4 @@ export async function* filterChangedOrTriggered(
 	storage.set(now);
 }
 
-export default filterChangedOrTriggered;
+export default findChangedOrTriggeredByGlob;

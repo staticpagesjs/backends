@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as path from 'path';
 
 const readdir = (dir: string) => {
 	const files: string[] = [];
@@ -18,17 +17,18 @@ const readdir = (dir: string) => {
 
 /**
  * Finds all files in a directory.
- * Always returns absolute paths where cwd is marked with /./ part.
+ * Always returns relative paths to cwd.
  */
-export function* findAll(cwd = '.', {
+export function* findAll({
+	cwd = '.',
 	filter,
 }: {
+	cwd?: string;
 	filter?(file: string): boolean;
 }): Iterable<string> {
-	const resolvedCwd = path.resolve(cwd).replace(/\\/g, '/');
 	for (const file of readdir(cwd)) {
 		if (filter && !filter(file)) continue;
-		yield resolvedCwd + '/./' + file;
+		yield file;
 	}
 }
 

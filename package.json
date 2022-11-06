@@ -19,29 +19,21 @@
       "require": "./cjs/writer.js",
       "default": "./esm/writer.js"
     },
-    "./simple-reader": {
-      "require": "./cjs/simple-reader.js",
-      "default": "./esm/simple-reader.js"
-    },
-    "./simple-writer": {
-      "require": "./cjs/simple-writer.js",
-      "default": "./esm/simple-writer.js"
+    "./find-all": {
+      "require": "./cjs/find-all.js",
+      "default": "./esm/find-all.js"
     },
     "./find-by-glob": {
       "require": "./cjs/find-by-glob.js",
       "default": "./esm/find-by-glob.js"
     },
-    "./find-all": {
-      "require": "./cjs/find-all.js",
-      "default": "./esm/find-all.js"
+    "./find-changed-by-glob": {
+      "require": "./cjs/find-changed-by-glob.js",
+      "default": "./esm/find-changed-by-glob.js"
     },
-    "./filter-changed": {
-      "require": "./cjs/filter-changed.js",
-      "default": "./esm/filter-changed.js"
-    },
-    "./filter-changed-or-triggered": {
-      "require": "./cjs/filter-changed-or-triggered.js",
-      "default": "./esm/filter-changed-or-triggered.js"
+    "./find-changed-or-triggered-by-glob": {
+      "require": "./cjs/find-changed-or-triggered-by-glob.js",
+      "default": "./esm/find-changed-or-triggered-by-glob.js"
     },
     "./parse-header": {
       "require": "./cjs/parse-header.js",
@@ -64,6 +56,7 @@
     "build:cjs": "tsc --project tsconfig.cjs.json && echo { \"type\": \"commonjs\" }>cjs/package.json",
     "watch:cjs": "npm run build:cjs && tsc --project tsconfig.cjs.json --watch",
     "test": "npm run build && cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:quick": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "clean": "rimraf esm cjs"
   },
   "repository": {
