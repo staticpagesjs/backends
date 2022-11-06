@@ -19,14 +19,21 @@ export function* findByGlob({
 	ignore,
 	filter
 }: findByGlob.Options): Iterable<string> {
-	for (const file of glob.sync(pattern, {
+	const files = glob.sync(pattern, {
 		cwd: cwd,
 		absolute: false,
 		caseSensitiveMatch: false,
 		...(ignore && { ignore: Array.isArray(ignore) ? ignore : [ignore] }),
-	})) {
-		if (filter && !filter(file)) continue;
-		yield file;
+	});
+
+	if (typeof filter === 'function') {
+		for (const file of files) {
+			if (filter(file)) yield file;
+		}
+	} else {
+		for (const file of files) {
+			yield file;
+		}
 	}
 }
 

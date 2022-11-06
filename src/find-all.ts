@@ -26,9 +26,14 @@ export function* findAll({
 	cwd?: string;
 	filter?(file: string): boolean;
 }): Iterable<string> {
-	for (const file of readdir(cwd)) {
-		if (filter && !filter(file)) continue;
-		yield file;
+	if (typeof filter === 'function') {
+		for (const file of readdir(cwd)) {
+			if (filter(file)) yield file;
+		}
+	} else {
+		for (const file of readdir(cwd)) {
+			yield file;
+		}
 	}
 }
 
