@@ -16,21 +16,19 @@ export namespace reader {
  * Reads documents from the filesystem.
  */
 export async function* reader<T extends Record<string, unknown>, E extends Record<string, unknown> = findByGlob.Options>(options: reader.Options<T, E>) {
-	if (!options.cwd) options.cwd = 'pages';
-	if (!options.mode) options.mode = findByGlob;
-	if (!options.onError) options.onError = error => { console.error(error); };
-	const {
-		cwd,
-		mode,
-		parser,
-		onError,
-	} = options;
+	const optionsWithDefaults: reader.Options<T, E> = {
+		cwd: 'pages',
+		mode: findByGlob,
+		onError: error => { console.error(error); },
+		...options,
+	};
+	const { cwd, mode, parser, onError } = optionsWithDefaults;
 
 	if (typeof mode !== 'function') {
 		throw new Error('Parameter error: \'mode\' expects a function.');
 	}
 
-	const files = mode(options);
+	const files = mode(optionsWithDefaults);
 
 	if (typeof (files as any)[Symbol.iterator] !== 'function' &&
 		typeof (files as any)[Symbol.asyncIterator] !== 'function') {
@@ -45,9 +43,13 @@ export async function* reader<T extends Record<string, unknown>, E extends Recor
 		throw new Error('Parameter error: \'onError\' expects a function.');
 	}
 
+	if (typeof cwd !== 'string') {
+		throw new Error('Parameter error: \'cwd\' expects a string.');
+	}
+
 	for await (const file of files) {
 		try {
-			yield await parser(await readFile(resolve(cwd, file)) as any, file, options);
+			yield await parser(await readFile(resolve(cwd, file)) as any, file, optionsWithDefaults);
 		} catch (error) {
 			onError(error);
 		}
