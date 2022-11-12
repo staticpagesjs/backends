@@ -33,6 +33,10 @@ export function writer<T extends Record<string, unknown>>({
 		throw new Error('Parameter error: \'onError\' expects a function.');
 	}
 
+	if (typeof cwd !== 'string') {
+		throw new Error('Parameter error: \'cwd\' expects a string.');
+	}
+
 	const dirCache = new Set<string>();
 
 	return async (data: T): Promise<void> => {
