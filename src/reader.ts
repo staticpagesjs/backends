@@ -24,28 +24,14 @@ export async function* reader<T extends Record<string, unknown>, E extends Recor
 	};
 	const { cwd, mode, parser, onError } = optionsWithDefaults;
 
-	if (typeof mode !== 'function') {
-		throw new Error('Parameter error: \'mode\' expects a function.');
-	}
+	if (typeof mode !== 'function') throw new Error('Argument type mismatch, \'mode\' expects a function.');
 
 	const files = mode(optionsWithDefaults);
 
-	if (typeof (files as any)[Symbol.iterator] !== 'function' &&
-		typeof (files as any)[Symbol.asyncIterator] !== 'function') {
-		throw new Error('Parameter error: \'mode\' expects a function that returns an Iterable or an AsyncIterable type.');
-	}
-
-	if (typeof parser !== 'function') {
-		throw new Error('Parameter error: \'parser\' expects a function.');
-	}
-
-	if (typeof onError !== 'function') {
-		throw new Error('Parameter error: \'onError\' expects a function.');
-	}
-
-	if (typeof cwd !== 'string') {
-		throw new Error('Parameter error: \'cwd\' expects a string.');
-	}
+	if (typeof (files as any)[Symbol.iterator] !== 'function' && typeof (files as any)[Symbol.asyncIterator] !== 'function') throw new Error('Argument type mismatch, \'mode\' expects a function that returns an Iterable or an AsyncIterable type.');
+	if (typeof parser !== 'function') throw new Error('Argument type mismatch, \'parser\' expects a function.');
+	if (typeof onError !== 'function') throw new Error('Argument type mismatch, \'onError\' expects a function.');
+	if (typeof cwd !== 'string') throw new Error('Argument type mismatch, \'cwd\' expects a string.');
 
 	for await (const file of files) {
 		try {

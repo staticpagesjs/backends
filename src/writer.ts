@@ -1,10 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { nameByHeader } from './name-by-header.js';
+import { nameByUrl } from './name-by-url.js';
+
 export namespace writer {
 	export type Options<T extends Record<string, unknown>> = {
 		cwd?: string;
-		namer: { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; } | { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; }[];
+		namer?: { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; } | { (data: Readonly<T>): string | undefined | void | Promise<string | undefined | void>; }[];
 		renderer(data: Readonly<T>): string | NodeJS.ArrayBufferView | undefined | void | Promise<string | NodeJS.ArrayBufferView | undefined | void>;
 		onError?(error: unknown): void;
 	};
@@ -15,27 +18,16 @@ export namespace writer {
  */
 export function writer<T extends Record<string, unknown>>({
 	cwd = 'dist',
-	namer,
+	namer = [nameByUrl, nameByHeader, () => { throw new Error('Naming error: could not create an output filename based on .url or .header.path properties.'); }],
 	renderer,
 	onError = error => { console.error(error); },
 }: writer.Options<T>) {
 	if (!Array.isArray(namer)) namer = [namer];
 
-	if (namer.some(fn => typeof fn !== 'function')) {
-		throw new Error('Parameter error: \'namer\' expects a function or a function array.');
-	}
-
-	if (typeof renderer !== 'function') {
-		throw new Error('Parameter error: \'renderer\' expects a function.');
-	}
-
-	if (typeof onError !== 'function') {
-		throw new Error('Parameter error: \'onError\' expects a function.');
-	}
-
-	if (typeof cwd !== 'string') {
-		throw new Error('Parameter error: \'cwd\' expects a string.');
-	}
+	if (typeof cwd !== 'string') throw new Error('Argument type mismatch, \'cwd\' expects a string.');
+	if (namer.some(fn => typeof fn !== 'function')) throw new Error('Argument type mismatch, \'namer\' expects a function or an array of functions.');
+	if (typeof renderer !== 'function') throw new Error('Argument type mismatch, \'renderer\' expects a function.');
+	if (typeof onError !== 'function') throw new Error('Argument type mismatch, \'onError\' expects a function.');
 
 	const dirCache = new Set<string>();
 
