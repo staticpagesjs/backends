@@ -1,7 +1,7 @@
 {
   "name": "@static-pages/nodefs-backend",
   "version": "1.0.0",
-  "description": "NodeJS Filesystem Backend for Static Pages",
+  "description": "NodeJS Filesystem Backend for @static-pages/core.",
   "type": "module",
   "main": "cjs/index.js",
   "module": "esm/index.js",
