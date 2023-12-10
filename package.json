@@ -1,7 +1,7 @@
 {
-  "name": "@static-pages/fileio",
+  "name": "@static-pages/nodefs-backend",
   "version": "1.0.0",
-  "description": "Filesystem reader and writer.",
+  "description": "NodeJS Filesystem Backend for Static Pages",
   "type": "module",
   "main": "cjs/index.js",
   "module": "esm/index.js",
@@ -10,42 +10,6 @@
     ".": {
       "require": "./cjs/index.js",
       "default": "./esm/index.js"
-    },
-    "./reader": {
-      "require": "./cjs/reader.js",
-      "default": "./esm/reader.js"
-    },
-    "./writer": {
-      "require": "./cjs/writer.js",
-      "default": "./esm/writer.js"
-    },
-    "./find-all": {
-      "require": "./cjs/find-all.js",
-      "default": "./esm/find-all.js"
-    },
-    "./find-by-glob": {
-      "require": "./cjs/find-by-glob.js",
-      "default": "./esm/find-by-glob.js"
-    },
-    "./find-changed-by-glob": {
-      "require": "./cjs/find-changed-by-glob.js",
-      "default": "./esm/find-changed-by-glob.js"
-    },
-    "./find-changed-or-triggered-by-glob": {
-      "require": "./cjs/find-changed-or-triggered-by-glob.js",
-      "default": "./esm/find-changed-or-triggered-by-glob.js"
-    },
-    "./parse-header": {
-      "require": "./cjs/parse-header.js",
-      "default": "./esm/parse-header.js"
-    },
-    "./name-by-header": {
-      "require": "./cjs/name-by-header.js",
-      "default": "./esm/name-by-header.js"
-    },
-    "./name-by-url": {
-      "require": "./cjs/name-by-url.js",
-      "default": "./esm/name-by-url.js"
     }
   },
   "scripts": {
