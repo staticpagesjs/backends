@@ -34,9 +34,9 @@ type Options = {
   cwd?: string;
 };
 interface Backend {
-	tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;
-	read(filename: string): MaybePromise<Uint8Array | string>;
-	write(filename: string, data: Uint8Array | string): MaybePromise<void>;
+  tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;
+  read(filename: string): MaybePromise<Uint8Array | string>;
+  write(filename: string, data: Uint8Array | string): MaybePromise<void>;
 }
 type MaybePromise<T> = T | Promise<T>;
 ```
