@@ -28,6 +28,11 @@ const backend = fsBackend({
 Creates a backend interface with the given options.
 
 ```ts
+type Options = {
+  since?: Date;
+  dependencies?: Record<string, string | string[] | { (matches: string[]): string | string[]; }>;
+  cwd?: string;
+};
 interface Backend {
 	tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;
 	read(filename: string): MaybePromise<Uint8Array | string>;
