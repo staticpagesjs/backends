@@ -1,0 +1,52 @@
+{
+  "name": "@static-pages/nodefs",
+  "version": "1.0.0",
+  "description": "NodeJS Filesystem Backend.",
+  "type": "module",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "esm/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./cjs/index.js",
+      "default": "./esm/index.js"
+    }
+  },
+  "scripts": {
+    "prepack": "npm run build && npm run test",
+    "postversion": "git push && git push --tags",
+    "clean": "rimraf esm cjs coverage",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc",
+    "watch:esm": "tsc --watch",
+    "build:cjs": "tsc --outDir cjs --module commonjs && echo { \"type\": \"commonjs\" }>cjs/package.json",
+    "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
+    "lint": "eslint",
+    "test": "mocha",
+    "coverage": "c8 -r text -r text-summary -r lcov --include \"esm/*\" npm test"
+  },
+  "dependencies": {
+    "fast-glob": "^3.2.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "c8": "^8.0.0",
+    "mocha": "^10.2.0",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
+  },
+  "author": "László BULIK",
+  "license": "MPL-2.0",
+  "homepage": "https://staticpagesjs.github.io/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staticpagesjs/backends.git"
+  },
+  "bugs": {
+    "url": "https://github.com/staticpagesjs/backends/issues"
+  },
+  "keywords": [
+    "static-pages",
+    "backend"
+  ]
+}

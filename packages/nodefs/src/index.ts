@@ -1,8 +1,8 @@
-import { join, relative, normalize } from 'path';
-import { readdir, readFile, writeFile, stat } from 'fs/promises';
+import { join, relative, normalize, dirname } from 'path';
+import { readdir, readFile, writeFile, stat, mkdir } from 'fs/promises';
 import glob from 'fast-glob';
 
-export namespace nodefsBackend {
+export namespace nodefs {
 	export type Options = {
 		since?: Date;
 		dependencies?: Record<string, string | string[] | { (matches: string[]): string | string[]; }>;
@@ -10,11 +10,11 @@ export namespace nodefsBackend {
 	};
 }
 
-export function nodefsBackend({
+export function nodefs({
 	cwd = '.',
 	since,
 	dependencies,
-}: nodefsBackend.Options = {}) {
+}: nodefs.Options = {}) {
 	return {
 		/**
 		 * Creates a tree that ignores items older than `since` with no dependencies newer than `since`.
@@ -22,9 +22,9 @@ export function nodefsBackend({
 		 * Format of dependencies:
 		 * ```js
 		 * {
-		 *   "dependency1-pattern": "item1-pattern",
-		 *   "dependency2-pattern": ["item1-pattern", "item2-pattern"]
-		 *   "dependency3-pattern": (matches) => ["item1-pattern", "item2-pattern"]
+		 *   "dependency-pattern-1": "item-pattern-1",
+		 *   "dependency-pattern-2": ["item-pattern-1", "item-pattern-2"]
+		 *   "dependency-pattern-3": (matches) => ["item-pattern-1", "item-pattern-2"]
 		 * }
 		 * ```
 		 */
@@ -45,13 +45,17 @@ export function nodefsBackend({
 				await Promise.all(pending);
 			};
 			await walk(basedir);
-			if (!since) return files.map(x => relative(cwd, x));
+			if (!since) return files.map(x => relative(basedir, x));
 
 			// filter by since
 			const filesWithMtimes = await Promise.all(
 				files.map(file => stat(file).then(stats => [file, stats.mtime] as const))
 			);
-			if (!dependencies) return filesWithMtimes.filter(x => since < x[1]).map(x => relative(cwd, x[0]));
+			if (!dependencies) return filesWithMtimes
+				.filter(x => {
+					return since < x[1];
+				})
+				.map(x => relative(basedir, x[0]));
 
 			// TODO: filterByDeps could be cached
 
@@ -74,19 +78,28 @@ export function nodefsBackend({
 				.filter(Boolean) as unknown as string[] // we filter undefined values.
 			);
 
-			return filesWithMtimes.filter(x => {
-				return since < x[1] || filterByDeps.has(x[0]);
-			}).map(x => relative(cwd, x[0]));
+			return filesWithMtimes
+				.filter(x => {
+					return since < x[1] || filterByDeps.has(x[0]);
+				})
+				.map(x => relative(basedir, x[0]));
 		},
 
 		read(filename: string) {
 			return readFile(join(cwd, filename));
 		},
 
-		write(filename: string, data: Uint8Array | string) {
-			return writeFile(join(cwd, filename), data);
+		async write(filename: string, data: Uint8Array | string) {
+            const filepath = join(cwd, filename);
+            const dirpath = dirname(filepath);
+            try {
+                await stat(dirpath);
+            } catch (error) {
+                await mkdir(dirpath, { recursive: true });
+            }
+			return writeFile(filepath, data);
 		},
 	};
 }
 
-export default nodefsBackend;
+export default nodefs;
